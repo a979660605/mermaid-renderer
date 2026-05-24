@@ -1,0 +1,12 @@
+{
+  "name": "Mermaid Markdown Editor",
+  "short_name": "MD Editor",
+  "description": "Markdown 编辑器，支持 Mermaid 图表、实时预览、多格式导出",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0f0c29",
+  "icons": [
+    { "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23667eea'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' fill='white'%3E◆%3C/text%3E%3C/svg%3E", "sizes": "192x192", "type": "image/svg+xml" }
+  ]
+}

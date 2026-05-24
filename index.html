@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mermaid Markdown Editor</title>
+  <link rel="stylesheet" href="style.css?v=9">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f0c29">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+<body>
+  <!-- Toolbar -->
+  <header id="toolbar">
+    <div class="toolbar-left">
+      <span class="app-title">Mermaid Markdown Editor</span>
+    </div>
+    <div class="toolbar-center">
+      <button id="btn-open" class="btn" title="打开 Markdown 文件 (Ctrl+O)">📂 打开</button>
+      <button id="btn-save" class="btn" title="保存 (Ctrl+S)">💾 保存</button>
+      <span class="toolbar-separator"></span>
+      <button id="btn-word" class="btn" title="导出 Word">📄 Word</button>
+      <button id="btn-pdf" class="btn" title="导出 PDF">📑 PDF</button>
+      <button id="btn-html" class="btn" title="导出 HTML">🌐 HTML</button>
+      <button id="btn-custom-css" class="btn" title="自定义预览 CSS">🎨 CSS</button>
+      <span class="toolbar-separator"></span>
+      <button id="btn-templates" class="btn" title="插入 Mermaid 模板">🧩 模板</button>
+      <button id="btn-excalidraw" class="btn" title="绘图工具">✏️ 绘图</button>
+      <button id="btn-slideshow" class="btn" title="演示模式 (全屏幻灯片)">🎬 演示</button>
+      <button id="btn-focus" class="btn" title="专注模式">🎯 专注</button>
+      <span class="toolbar-separator"></span>
+      <select id="ui-theme" class="theme-select" title="UI 主题">
+        <option value="dark">深色</option>
+        <option value="light">浅色</option>
+        <option value="purple">紫色</option>
+        <option value="green">护眼绿</option>
+      </select>
+      <select id="mermaid-theme" class="theme-select" title="Mermaid 图表主题">
+        <option value="default">默认</option>
+        <option value="dark">暗色</option>
+        <option value="forest">森林</option>
+        <option value="neutral">中性</option>
+      </select>
+    </div>
+    <div class="toolbar-right">
+      <span id="render-status" class="render-status"></span>
+    </div>
+  </header>
+
+  <!-- Tab Bar -->
+  <div id="tab-bar" class="tab-bar hidden">
+    <div id="tab-container" class="tab-container"></div>
+    <button id="btn-new-tab" class="tab-new-btn" title="新建标签">+</button>
+  </div>
+
+  <!-- Main Content -->
+  <main id="main-container">
+    <div id="editor-pane" class="pane">
+      <div class="pane-header">
+        <span>编辑区 (Markdown)</span>
+        <div class="pane-header-right">
+          <span class="md-toolbar" id="md-toolbar">
+            <button class="md-btn" data-md="**B**" data-wrap="**" title="粗体 Ctrl+B"><b>B</b></button>
+            <button class="md-btn" data-md="*I*" data-wrap="*" title="斜体 Ctrl+I"><i>I</i></button>
+            <button class="md-btn" data-md="# " title="标题">H</button>
+            <button class="md-btn" data-md="- " title="列表">≡</button>
+            <button class="md-btn" data-md="codeblock" title="代码块">&lt;/&gt;</button>
+            <button class="md-btn" data-md="[text](url)" title="链接">🔗</button>
+          </span>
+          <span class="toolbar-separator" style="height:16px;"></span>
+          <label class="font-size-label" title="编辑器字号">
+            <span class="pane-header-text">字号</span>
+            <input type="range" id="font-size-slider" min="12" max="24" value="14" class="font-size-slider">
+          </label>
+        </div>
+      </div>
+      <div id="search-bar" class="search-bar hidden">
+        <input type="text" id="search-input" placeholder="查找..." class="search-input">
+        <span id="search-count" class="search-count">0/0</span>
+        <button id="search-prev" class="search-nav-btn" title="上一个">▲</button>
+        <button id="search-next" class="search-nav-btn" title="下一个">▼</button>
+        <button id="search-close" class="search-nav-btn" title="关闭">✕</button>
+      </div>
+      <div class="editor-wrapper">
+        <div id="line-numbers" class="line-numbers"></div>
+        <textarea id="editor" spellcheck="false" placeholder="在此输入 Markdown 内容，支持拖入 .md 文件和粘贴图片&#10;&#10;```mermaid&#10;graph TD;&#10;    A[开始] --> B[结束]&#10;```"></textarea>
+      </div>
+    </div>
+    <div id="divider"></div>
+    <div id="preview-pane" class="pane">
+      <div class="pane-header">
+        <span>预览区</span>
+        <div class="pane-header-right">
+          <button id="btn-fullscreen-preview" class="btn btn-sm" title="全屏预览">⛶ 全屏</button>
+        </div>
+      </div>
+      <div id="preview"><div class="preview-placeholder">暂无预览内容</div></div>
+    </div>
+  </main>
+
+  <!-- Status Bar -->
+  <footer id="status-bar">
+    <span id="status-file">📄 untitled.md</span>
+    <span id="status-stats">字数: 0 | 行数: 0</span>
+    <span id="status-mermaid">🧩 0</span>
+    <span id="status-autosave"></span>
+    <span id="status-tab" class="status-right"></span>
+    <button id="btn-stats" class="status-btn" title="详细统计">📊</button>
+  </footer>
+
+  <!-- Drag Overlay -->
+  <div id="drag-overlay" class="hidden">
+    <div class="drag-content">
+      <div class="drag-icon">📄</div>
+      <div class="drag-text">拖放文件到此处</div>
+      <div class="drag-hint">支持 .md 文件和图片</div>
+    </div>
+  </div>
+
+  <!-- Excalidraw Modal -->
+  <div id="excalidraw-modal" class="modal hidden">
+    <div class="modal-header">
+      <button id="ex-back" class="btn btn-sm" title="返回编辑器">← 返回编辑器</button>
+      <div class="ex-toolbar-group">
+        <button class="ex-tool-btn active" data-tool="select" title="选择">⬚</button>
+        <button class="ex-tool-btn" data-tool="pen" title="画笔">✏️</button>
+        <button class="ex-tool-btn" data-tool="rectangle" title="矩形">▭</button>
+        <button class="ex-tool-btn" data-tool="circle" title="圆形">○</button>
+        <button class="ex-tool-btn" data-tool="line" title="线条">╱</button>
+        <button class="ex-tool-btn" data-tool="arrow" title="箭头">→</button>
+        <button class="ex-tool-btn" data-tool="text" title="文字">T</button>
+      </div>
+      <div class="ex-toolbar-group">
+        <label class="ex-label">🎨&nbsp;<input type="color" id="ex-color" value="#000000"></label>
+        <label class="ex-label">粗细 <input type="range" id="ex-line-width" min="1" max="10" value="2"></label>
+        <label class="ex-label"><input type="checkbox" id="ex-fill" checked>填充</label>
+      </div>
+      <div class="ex-toolbar-group">
+        <button id="ex-undo" class="ex-action-btn">↩撤销</button>
+        <button id="ex-redo" class="ex-action-btn">↪重做</button>
+        <button id="ex-clear" class="ex-action-btn btn-danger">🗑清空</button>
+      </div>
+      <button id="ex-embed" class="btn btn-primary">📥 嵌入</button>
+    </div>
+    <div class="modal-body">
+      <canvas id="excalidraw-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Hidden file inputs -->
+  <input type="file" id="file-input" accept=".md,.markdown" hidden>
+  <input type="file" id="image-input" accept="image/*" hidden>
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <!-- Shortcuts Modal -->
+  <div id="shortcuts-overlay" class="shortcuts-overlay hidden">
+    <div class="shortcuts-panel">
+      <h2>⌨️ 快捷键</h2>
+      <div class="shortcuts-group"><h3>编辑器</h3>
+        <div class="shortcut-row"><span>保存</span><span class="key"><kbd>Ctrl+S</kbd></span></div>
+        <div class="shortcut-row"><span>打开文件</span><span class="key"><kbd>Ctrl+O</kbd></span></div>
+        <div class="shortcut-row"><span>查找</span><span class="key"><kbd>Ctrl+F</kbd></span></div>
+        <div class="shortcut-row"><span>缩进 4 空格</span><span class="key"><kbd>Tab</kbd></span></div>
+        <div class="shortcut-row"><span>专注模式</span><span class="key"><kbd>Ctrl+Shift+F</kbd></span></div>
+      </div>
+      <div class="shortcuts-group"><h3>Excalidraw</h3>
+        <div class="shortcut-row"><span>撤销</span><span class="key"><kbd>Ctrl+Z</kbd></span></div>
+        <div class="shortcut-row"><span>重做</span><span class="key"><kbd>Ctrl+Shift+Z</kbd></span></div>
+        <div class="shortcut-row"><span>删除</span><span class="key"><kbd>Delete</kbd></span></div>
+      </div>
+      <div class="shortcuts-group"><h3>全局</h3>
+        <div class="shortcut-row"><span>快捷键帮助</span><span class="key"><kbd>?</kbd></span></div>
+        <div class="shortcut-row"><span>关闭弹窗</span><span class="key"><kbd>Esc</kbd></span></div>
+      </div>
+      <div class="shortcuts-close-hint">按 <kbd>Esc</kbd> 或 <kbd>?</kbd> 关闭</div>
+    </div>
+  </div>
+
+  <!-- Custom CSS Modal -->
+  <div id="css-modal" class="shortcuts-overlay hidden">
+    <div class="shortcuts-panel" style="max-width:600px;">
+      <h2>🎨 自定义预览 CSS</h2>
+      <p class="css-modal-hint">输入自定义 CSS 样式，将应用到预览区。修改后自动生效。</p>
+      <textarea id="custom-css-input" class="custom-css-textarea" placeholder="/* 在此输入自定义 CSS */&#10;body { font-family: serif; }&#10;h1 { color: #667eea; }"></textarea>
+      <div class="css-modal-actions">
+        <button id="btn-css-reset" class="ex-action-btn btn-danger">重置</button>
+        <button id="btn-css-close" class="btn btn-primary">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Modal -->
+  <div id="stats-modal" class="shortcuts-overlay hidden">
+    <div class="shortcuts-panel" style="max-width:450px;">
+      <h2>📊 文档统计</h2>
+      <div id="stats-content" class="stats-content"></div>
+      <div style="text-align:center;margin-top:16px;">
+        <button id="btn-stats-close" class="btn btn-primary">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Templates Modal -->
+  <div id="templates-modal" class="shortcuts-overlay hidden">
+    <div class="shortcuts-panel" style="max-width:720px;">
+      <h2>🧩 Mermaid 模板</h2>
+      <div id="templates-grid" class="templates-grid"></div>
+      <div class="css-modal-actions">
+        <button id="btn-templates-close" class="btn btn-primary">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slideshow overlay -->
+  <div id="slideshow-overlay" class="shortcuts-overlay hidden">
+    <div class="slideshow-nav-left" id="ss-prev">◀</div>
+    <div class="slideshow-nav-right" id="ss-next">▶</div>
+    <div class="slideshow-counter" id="ss-counter">1 / 1</div>
+    <button class="slideshow-close" id="ss-close">✕ 退出</button>
+    <div class="slideshow-content" id="ss-content"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="marked.min.js"></script>
+  <script src="mermaid.min.js"></script>
+  <script src="highlight.min.js"></script>
+  <script src="html-docx.js"></script>
+  <script src="purify.min.js?v=9"></script>
+  <script src="modules/sanitizer.js?v=9"></script>
+  <script src="modules/export.js?v=9"></script>
+  <script src="app.js?v=9"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(function(){});
+    }
+  </script>
+</body>
+</html>
